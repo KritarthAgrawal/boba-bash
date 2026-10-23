@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Evolution of Earth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=Instrument+Sans:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+    background: #050505;
+    color: #fff;
+    font-family: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 3px;
+    background: #ffd98a;
+    box-shadow: 0 0 12px #ffd98a;
+    z-index: 10;
+}
+
+/* ---------- Photos: one fixed stage, photos crossfade on it ---------- */
+.backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: #050505;
+    overflow: hidden;
+}
+
+.photo {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    scale: 1.1;
+    transition: opacity 2s ease, scale 10s linear;
+}
+
+.photo.on {
+    opacity: 1;
+    scale: 1;
+}
+
+/* one even dark layer over every photo, so there is never a visible seam */
+.backdrop::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.68));
+}
+
+#photo-space   { background-color: #3a1405; background-image: url("https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=2000&q=85"), linear-gradient(135deg, #5a1a05, #120502); }
+#photo-earth   { background-color: #04121f; background-image: url("https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=2000&q=85"), linear-gradient(135deg, #0b3a5c, #04121f); }
+#photo-forest  { background-color: #0a2a1a; background-image: url("https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=2000&q=85"), linear-gradient(135deg, #1f5a3a, #06160e); }
+#photo-night   { background-color: #101a3a; background-image: url("https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2000&q=85"), linear-gradient(135deg, #1b2a5c, #070a18); }
+#photo-tech    { background-color: #0a1a2a; background-image: url("https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=2000&q=85"), linear-gradient(135deg, #123a5c, #050b14); }
+#photo-ocean   { background-color: #04243a; background-image: url("https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=2000&q=85"), linear-gradient(135deg, #0a5a78, #021018); }
+#photo-shore   { background-color: #0a3040; background-image: url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=85"), linear-gradient(135deg, #2b7f95, #0a2430); }
+
+/* ---------- Sections are see-through, so photos blend between them ---------- */
+section {
+    min-height: 100vh;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 8%;
+}
+
+.content {
+    max-width: 560px;
+    text-shadow: 0 2px 24px rgba(0,0,0,0.6);
+}
+
+.right { margin-left: auto; }
+
+/* text fades in one piece after another (no sliding sideways) */
+.content > * {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 1.2s ease, transform 1.2s ease;
+    transition-delay: calc(var(--i, 0) * 0.18s);
+}
+
+.content.show > * { opacity: 1; transform: none; }
+
+.when {
+    font-size: 18px;
+    font-weight: 500;
+    color: #ffd98a;
+    margin-bottom: 16px;
+}
+
+h1, h2 {
+    font-family: "Fraunces", Georgia, "Times New Roman", serif;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+}
+
+h1 { font-size: clamp(52px, 8vw, 104px); margin-bottom: 28px; line-height: 1; }
+h2 { font-size: clamp(40px, 5.5vw, 72px); margin-bottom: 24px; line-height: 1.05; }
+
+p {
+    font-size: clamp(18px, 1.6vw, 21px);
+    line-height: 1.75;
+    color: #ece9e0;
+}
+
+p + p { margin-top: 18px; }
+
+.fact {
+    margin-top: 28px;
+    position: relative;
+    padding-left: 18px;
+    font-family: "Fraunces", Georgia, serif;
+    font-size: clamp(20px, 2vw, 26px);
+    line-height: 1.4;
+    color: #fff;
+}
+
+.fact::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: #ffd98a;
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform .9s ease 1s;
+}
+
+.content.show .fact::before { transform: scaleY(1); }
+
+.cue {
+    width: 22px;
+    height: 22px;
+    margin-top: 34px;
+    border-right: 2px solid #ffd98a;
+    border-bottom: 2px solid #ffd98a;
+    transform: rotate(45deg);
+    animation: bounce 1.8s ease-in-out infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { translate: 0 0; opacity: .5; }
+    50% { translate: 0 10px; opacity: 1; }
+}
+
+footer {
+    padding: 80px 8%;
+    text-align: center;
+    color: #a9a79f;
+    font-size: 17px;
+    line-height: 1.7;
+}
+
+footer strong {
+    display: block;
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 300;
+    font-size: clamp(28px, 3.5vw, 40px);
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 600px) {
+    section { padding: 8%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .photo { transition: opacity 0.5s; scale: 1; }
+    .content > *, .fact::before { transition: none; opacity: 1; transform: none; }
+    .cue { animation: none; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div class="backdrop" aria-hidden="true">
+    <div class="photo on" id="photo-space"></div>
+    <div class="photo" id="photo-earth"></div>
+    <div class="photo" id="photo-ocean"></div>
+    <div class="photo" id="photo-shore"></div>
+    <div class="photo" id="photo-forest"></div>
+    <div class="photo" id="photo-night"></div>
+    <div class="photo" id="photo-tech"></div>
+</div>
+
+<section data-photo="photo-space">
+    <div class="content">
+        <h1>The Evolution<br>of Earth</h1>
+        <p>Let me tell you how I began. Before I had a name, I was a cloud of dust and gas, drifting in the dark.</p>
+        <p>Come along. It’s a long story, but I’ll keep it moving.</p>
+        <div class="cue" aria-hidden="true"></div>
+    </div>
+</section>
+
+<section data-photo="photo-earth">
+    <div class="content right">
+        <p class="when">4.5 billion years ago</p>
+        <h2>I was not a gentle place</h2>
+        <p>I was a ball of glowing rock, and the sky kept throwing things at me. One crash was so big it tore a piece of me away. That piece became the Moon.</p>
+        <p>Then, slowly, I cooled. Steam turned to rain, and the rain fell for a very long time. When it stopped, I had oceans.</p>
+        <p class="fact">The Moon is still close by, tugging at my tides.</p>
+    </div>
+</section>
+
+<section data-photo="photo-ocean">
+    <div class="content">
+        <p class="when">3.8 billion years ago</p>
+        <h2>Something small woke up</h2>
+        <p>Deep in the water, a few chemicals learned to copy themselves. Nobody planned it. It was tiny, quiet and easy to miss.</p>
+        <p>But it held on, and it changed. For three billion years that was all the life I had: invisible, patient and busy.</p>
+        <p class="fact">All of it was too small to see without a microscope.</p>
+    </div>
+</section>
+
+<section data-photo="photo-shore">
+    <div class="content right">
+        <p class="when">2.4 billion years ago</p>
+        <h2>The day the sky changed</h2>
+        <p>Some of those tiny cells learned to live on sunlight. Their waste was a gas called oxygen, and they made a lot of it.</p>
+        <p>It wiped out many of my oldest residents. It was also the best thing that ever happened to me, because it made room for bigger lives.</p>
+        <p class="fact">Nearly every breath you take began with their work.</p>
+    </div>
+</section>
+
+<section data-photo="photo-forest">
+    <div class="content">
+        <p class="when">540 to 66 million years ago</p>
+        <h2>Things with eyes and legs</h2>
+        <p>Then life got ambitious. Shells, bones, eyes. Creatures crept out of the water onto my shores, and forests followed. For over 150 million years, dinosaurs walked on me.</p>
+        <p>Then a rock from space ended their reign within a few short years. The small furry survivors inherited my land.</p>
+        <p class="fact">The birds outside your window are dinosaur family.</p>
+    </div>
+</section>
+
+<section data-photo="photo-night">
+    <div class="content right">
+        <p class="when">About 300,000 years ago</p>
+        <h2>Then you arrived</h2>
+        <p>A new kind of animal looked up at my night sky and wondered. It learned to speak, to use fire, to make tools and to tell stories.</p>
+        <p>It walked across every continent I had. I didn’t know it yet, but I was getting company.</p>
+        <p class="fact">Stories let each generation start where the last one stopped.</p>
+    </div>
+</section>
+
+<section data-photo="photo-night">
+    <div class="content">
+        <p class="when">About 12,000 years ago</p>
+        <h2>You planted a seed</h2>
+        <p>People stopped following their food and started growing it. Villages appeared, then towns, then the first cities.</p>
+        <p>You invented writing so memories wouldn’t die with people. Trade, laws and art spread from place to place.</p>
+        <p class="fact">Farming made almost everything after it possible.</p>
+    </div>
+</section>
+
+<section data-photo="photo-tech">
+    <div class="content right">
+        <p class="when">1760 to today</p>
+        <h2>You got fast</h2>
+        <p>In the last 250 years I’ve watched you build engines, light up the night and send voices across oceans. Then came computers and satellites.</p>
+        <p>Now there are over 8 billion of you. I’m proud of you, and a little worried.</p>
+        <p class="fact">From space, your cities glow at night.</p>
+    </div>
+</section>
+
+<section data-photo="photo-earth">
+    <div class="content">
+        <p class="when">Tomorrow</p>
+        <h2>What happens next is up to you</h2>
+        <p>I’ve been through fire, ice and falling rocks, and I’m still here. But I don’t know how this chapter ends. That part you write.</p>
+        <p>Look after the forests, the water and each other. I’ll keep turning.</p>
+        <p class="fact">The next page is blank.</p>
+    </div>
+</section>
+
+<footer>
+    <strong>Thanks for listening.</strong>
+    I’m about 4.5 billion years old, and my story isn’t finished.
+</footer>
+
+<script>
+const contents = document.querySelectorAll(".content");
+const sections = document.querySelectorAll("section");
+const photos = document.querySelectorAll(".photo");
+
+/* Delay for each piece of text, so they appear one after another */
+contents.forEach((content) => {
+    [...content.children].forEach((child, i) => child.style.setProperty("--i", i));
+});
+
+/* The section crossing the middle of the screen decides which photo is showing.
+   The old photo fades out while the new one fades in, so nothing slides or cuts. */
+const photoObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const id = entry.target.dataset.photo;
+        photos.forEach((p) => p.classList.toggle("on", p.id === id));
+    });
+}, { rootMargin: "-50% 0px -50% 0px" });
+sections.forEach((sec) => photoObserver.observe(sec));
+
+/* Text fades in when it comes into view */
+const textObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+        if (entry.isIntersecting) entry.target.classList.add("show");
+    });
+}, { threshold: 0.2 });
+contents.forEach((content) => textObserver.observe(content));
+
+/* Progress bar */
+window.addEventListener("scroll", () => {
+    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
+    document.getElementById("progress").style.width = progress + "%";
+});
+</script>
+
+</body>
+</html>
